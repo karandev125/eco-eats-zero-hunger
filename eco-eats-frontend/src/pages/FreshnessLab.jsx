@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import '../index.css';
 import { api } from '../api';
 import {
@@ -12,6 +14,17 @@ import {
   freshnessLabel,
   routeRiskClass
 } from '../utils/foodDisplay';
+
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 function defaultExpiryLocal(hours = 8) {
   const value = new Date(Date.now() + hours * 60 * 60 * 1000);
@@ -67,6 +80,44 @@ const initialCenter = {
   operatingHours: '',
   contactPhone: ''
 };
+
+const allocationKey = (entry) => `${entry?.foodItem?._id || entry?.foodItem?.title || 'food'}-${entry?.demandCenter?._id || entry?.demandCenter?.name || 'center'}`;
+
+const normalizeCoords = (coords) => {
+  const lat = Number(coords?.lat);
+  const lng = Number(coords?.lng);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+};
+
+const coordsForFood = (entry) => normalizeCoords(entry?.foodItem?.pickupCoordinates);
+const coordsForCenter = (entry) => normalizeCoords(entry?.demandCenter?.coordinates);
+
+const routeStrokeColor = (entry) => {
+  if (entry?.expiry?.canDeliverBeforeExpiry === false) return '#b42318';
+  if (entry?.route?.fallback) return '#245f93';
+  if (routeRiskClass(entry?.expiry?.riskLevel) === 'risk-high') return '#b42318';
+  if (routeRiskClass(entry?.expiry?.riskLevel) === 'risk-medium') return '#b7791f';
+  return '#177a62';
+};
+
+const mapsNavigationUrl = (entry) => {
+  const pickup = coordsForFood(entry);
+  const dropoff = coordsForCenter(entry);
+
+  if (!pickup || !dropoff) return '';
+  const origin = `${pickup.lat},${pickup.lng}`;
+  const destination = `${dropoff.lat},${dropoff.lng}`;
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+};
+
+const escapeHtml = (value) => String(value || '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
 
 const SliderField = ({ label, value, min, max, step, unit, hint, onChange }) => (
   <label className="slider-field">
@@ -175,6 +226,115 @@ const ModelBreakdown = ({ freshness }) => {
   );
 };
 
+const DispatchMap = ({ allocations, activeAllocationKey, onSelectAllocation }) => {
+  const mapRef = useRef(null);
+  const mapInstance = useRef(null);
+  const layersRef = useRef([]);
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstance.current) return;
+
+    mapInstance.current = L.map(mapRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([12.9716, 77.5946], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance.current);
+
+    window.setTimeout(() => mapInstance.current?.invalidateSize(), 0);
+
+    return () => {
+      mapInstance.current?.remove();
+      mapInstance.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    layersRef.current.forEach((layer) => mapInstance.current?.removeLayer(layer));
+    layersRef.current = [];
+
+    const activeAllocation = allocations.find((entry) => allocationKey(entry) === activeAllocationKey) || allocations[0];
+    const markerBounds = [];
+    let routeLayer = null;
+
+    if (activeAllocation?.route?.geometry) {
+      routeLayer = L.geoJSON(activeAllocation.route.geometry, {
+        style: {
+          color: routeStrokeColor(activeAllocation),
+          opacity: 0.92,
+          weight: 6
+        }
+      }).addTo(mapInstance.current);
+      layersRef.current.push(routeLayer);
+    }
+
+    allocations.forEach((entry, index) => {
+      const key = allocationKey(entry);
+      const isActive = key === allocationKey(activeAllocation);
+      const pickup = coordsForFood(entry);
+      const dropoff = coordsForCenter(entry);
+      const baseOpacity = isActive ? 0.95 : 0.45;
+      const radius = isActive ? 9 : 6;
+
+      if (pickup) {
+        const pickupMarker = L.circleMarker([pickup.lat, pickup.lng], {
+          radius,
+          color: isActive ? '#0f5f4b' : '#7aa895',
+          weight: isActive ? 3 : 2,
+          opacity: baseOpacity,
+          fillColor: '#177a62',
+          fillOpacity: isActive ? 0.78 : 0.42
+        })
+          .bindPopup(`<strong>${escapeHtml(entry.foodItem?.title || `Food query ${index + 1}`)}</strong><br>Pickup query<br>${escapeHtml(entry.foodItem?.pickupAddress || entry.foodItem?.location)}`)
+          .on('click', () => onSelectAllocation(key));
+
+        pickupMarker.addTo(mapInstance.current);
+        layersRef.current.push(pickupMarker);
+        markerBounds.push([pickup.lat, pickup.lng]);
+      }
+
+      if (dropoff) {
+        const centerMarker = L.circleMarker([dropoff.lat, dropoff.lng], {
+          radius,
+          color: isActive ? '#163b5f' : '#7893ac',
+          weight: isActive ? 3 : 2,
+          opacity: baseOpacity,
+          fillColor: '#245f93',
+          fillOpacity: isActive ? 0.72 : 0.35
+        })
+          .bindPopup(`<strong>${escapeHtml(entry.demandCenter?.name || `Demand center ${index + 1}`)}</strong><br>${escapeHtml(entry.demandCenter?.urgency || 'medium')} demand<br>${escapeHtml(entry.demandCenter?.address)}`)
+          .on('click', () => onSelectAllocation(key));
+
+        centerMarker.addTo(mapInstance.current);
+        layersRef.current.push(centerMarker);
+        markerBounds.push([dropoff.lat, dropoff.lng]);
+      }
+    });
+
+    mapInstance.current.invalidateSize();
+
+    const routeBounds = routeLayer?.getBounds();
+    if (routeBounds?.isValid()) {
+      mapInstance.current.fitBounds(routeBounds, { padding: [34, 34], maxZoom: 14 });
+    } else if (markerBounds.length > 0) {
+      mapInstance.current.fitBounds(markerBounds, { padding: [34, 34], maxZoom: 13 });
+    }
+  }, [allocations, activeAllocationKey, onSelectAllocation]);
+
+  return (
+    <div className="dispatch-map-shell">
+      <div className="dispatch-map" ref={mapRef} />
+      {allocations.length === 0 && (
+        <div className="dispatch-map-empty">No feasible routes to map yet.</div>
+      )}
+    </div>
+  );
+};
+
 const FreshnessLab = () => {
   const [sensor, setSensor] = useState(initialSensor);
   const [freshness, setFreshness] = useState(null);
@@ -187,10 +347,28 @@ const FreshnessLab = () => {
   const [matches, setMatches] = useState([]);
   const [matchStatus, setMatchStatus] = useState('');
   const [loadingRecords, setLoadingRecords] = useState(true);
+  const [syncToken, setSyncToken] = useState(() => localStorage.getItem('sheetsSyncToken') || '');
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [syncMessage, setSyncMessage] = useState('Enter the backend sync token to check Google Sheets.');
+  const [syncingSheets, setSyncingSheets] = useState(false);
+  const [allocations, setAllocations] = useState([]);
+  const [dispatchStatus, setDispatchStatus] = useState('');
+  const [loadingDispatch, setLoadingDispatch] = useState(false);
+  const [activeAllocationKey, setActiveAllocationKey] = useState('');
+  const [executedAllocationKey, setExecutedAllocationKey] = useState('');
 
   const selectedFood = useMemo(
     () => foods.find((item) => item._id === sensor.foodItemId),
     [foods, sensor.foodItemId]
+  );
+
+  const activeAllocation = useMemo(
+    () => allocations.find((entry) => allocationKey(entry) === activeAllocationKey) || allocations[0] || null,
+    [allocations, activeAllocationKey]
+  );
+  const activeNavigationUrl = useMemo(
+    () => (activeAllocation ? mapsNavigationUrl(activeAllocation) : ''),
+    [activeAllocation]
   );
 
   const updateSensor = (field, value) => {
@@ -209,49 +387,143 @@ const FreshnessLab = () => {
     setPreviewStatus(`${preset.name} preset applied.`);
   };
 
-  useEffect(() => {
-    const loadRecords = async () => {
-      setLoadingRecords(true);
+  const syncHeaders = () => ({ 'x-sync-token': syncToken.trim() });
 
-      try {
-        const [foodRes, centerRes] = await Promise.all([
-          api.get('/food', { params: { sort: 'bestmatch', radiusKm: undefined } }),
-          api.get('/demand-centers')
-        ]);
-        setFoods(foodRes.data);
-        setCenters(centerRes.data);
+  const fetchSheetsStatus = async () => {
+    if (!syncToken.trim()) {
+      setSyncStatus(null);
+      setSyncMessage('Enter the backend sync token to check Google Sheets.');
+      return;
+    }
 
-        if (foodRes.data[0]) {
-          setSensor((current) => ({
-            ...current,
-            foodItemId: current.foodItemId || foodRes.data[0]._id,
-            deviceId: current.deviceId || foodRes.data[0].deviceId || '',
-            category: foodRes.data[0].category || current.category,
-            expiryDate: current.expiryDate || defaultExpiryLocal()
-          }));
-        }
-      } catch (err) {
-        console.error('Freshness lab records failed:', err);
-        setPreviewStatus('Could not load live food records.');
-      } finally {
-        setLoadingRecords(false);
+    localStorage.setItem('sheetsSyncToken', syncToken.trim());
+    setSyncMessage('Checking Google Sheets sync...');
+
+    try {
+      const res = await api.get('/iot/sheets/status', { headers: syncHeaders() });
+      setSyncStatus(res.data);
+      setSyncMessage(res.data.configured
+        ? 'Google Sheets sync is configured.'
+        : `Google Sheets needs setup: ${(res.data.missing || []).join(', ')}`);
+    } catch (err) {
+      console.error('Sheets status failed:', err);
+      setSyncStatus(null);
+      setSyncMessage(err.response?.data?.message || 'Could not check Google Sheets sync.');
+    }
+  };
+
+  const importSheetsTelemetry = async () => {
+    if (!syncToken.trim()) {
+      setSyncMessage('Enter the backend sync token before importing.');
+      return;
+    }
+
+    localStorage.setItem('sheetsSyncToken', syncToken.trim());
+    setSyncingSheets(true);
+    setSyncMessage('Importing telemetry rows...');
+
+    try {
+      const res = await api.post('/iot/sheets/import', {}, { headers: syncHeaders() });
+      setSyncStatus((current) => ({ ...(current || {}), lastImport: res.data }));
+      setSyncMessage(`Imported ${res.data.processed} safe rows, ${res.data.unsafe} unsafe rows, ${res.data.duplicate} duplicates.`);
+      await Promise.all([loadRecords(), loadDispatchQueue()]);
+    } catch (err) {
+      console.error('Sheets import failed:', err);
+      setSyncMessage(err.response?.data?.message || 'Could not import Google Sheets telemetry.');
+    } finally {
+      setSyncingSheets(false);
+    }
+  };
+
+  const loadDispatchQueue = useCallback(async () => {
+    setLoadingDispatch(true);
+    setDispatchStatus('Loading dispatch queue...');
+
+    try {
+      const res = await api.get('/demand-centers/allocations', { params: { limit: 25 } });
+      const nextAllocations = Array.isArray(res.data) ? res.data : [];
+      setAllocations(nextAllocations);
+      setActiveAllocationKey((currentKey) => (
+        nextAllocations.some((entry) => allocationKey(entry) === currentKey)
+          ? currentKey
+          : nextAllocations[0]
+            ? allocationKey(nextAllocations[0])
+            : ''
+      ));
+      setExecutedAllocationKey((currentKey) => (
+        nextAllocations.some((entry) => allocationKey(entry) === currentKey) ? currentKey : ''
+      ));
+      setDispatchStatus(nextAllocations.length
+        ? 'Prioritized dispatch queue is ready.'
+        : 'No feasible food-to-center routes right now.');
+    } catch (err) {
+      console.error('Dispatch queue failed:', err);
+      setAllocations([]);
+      setActiveAllocationKey('');
+      setExecutedAllocationKey('');
+      setDispatchStatus(err.response?.data?.message || 'Could not load dispatch queue.');
+    } finally {
+      setLoadingDispatch(false);
+    }
+  }, []);
+
+  const loadRecords = useCallback(async () => {
+    setLoadingRecords(true);
+
+    try {
+      const [foodRes, centerRes] = await Promise.all([
+        api.get('/food', { params: { sort: 'bestmatch', radiusKm: undefined } }),
+        api.get('/demand-centers')
+      ]);
+      setFoods(foodRes.data);
+      setCenters(centerRes.data);
+
+      if (foodRes.data[0]) {
+        setSensor((current) => ({
+          ...current,
+          foodItemId: current.foodItemId
+            || (foodRes.data.find((item) => item.deviceId && item.deviceId === current.deviceId)?._id)
+            || foodRes.data[0]._id,
+          deviceId: current.deviceId || foodRes.data[0].deviceId || '',
+          category: (foodRes.data.find((item) => item.deviceId && item.deviceId === current.deviceId)?.category)
+            || foodRes.data[0].category
+            || current.category,
+          expiryDate: current.expiryDate || defaultExpiryLocal()
+        }));
       }
-    };
-
-    loadRecords();
+    } catch (err) {
+      console.error('Freshness lab records failed:', err);
+      setPreviewStatus('Could not load live food records.');
+    } finally {
+      setLoadingRecords(false);
+    }
   }, []);
 
   useEffect(() => {
+    loadRecords();
+    loadDispatchQueue();
+  }, [loadDispatchQueue, loadRecords]);
+
+  useEffect(() => {
     if (!selectedFood) return;
+
+    const liveFreshness = selectedFood.freshness || {};
+    const liveGasLevel = liveFreshness.gasIndex ?? liveFreshness.gasLevel;
 
     setSensor((current) => ({
       ...current,
       deviceId: selectedFood.deviceId || current.deviceId,
       category: selectedFood.category || current.category,
+      temperatureC: liveFreshness.temperatureC ?? current.temperatureC,
+      humidityPct: liveFreshness.humidityPct ?? current.humidityPct,
+      gasLevel: liveGasLevel ?? current.gasLevel,
       expiryDate: selectedFood.expiryDate
         ? new Date(new Date(selectedFood.expiryDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
         : current.expiryDate
     }));
+    if (selectedFood.freshness?.state) {
+      setFreshness(selectedFood.freshness);
+    }
   }, [selectedFood]);
 
   const { category, expiryDate, temperatureC, humidityPct, gasLevel } = sensor;
@@ -332,6 +604,13 @@ const FreshnessLab = () => {
       console.error('Demand match failed:', err);
       setMatchStatus(err.response?.data?.message || 'Could not rank demand centers.');
     }
+  };
+
+  const executeAllocation = (entry) => {
+    const key = allocationKey(entry);
+    setActiveAllocationKey(key);
+    setExecutedAllocationKey(key);
+    setDispatchStatus(`Executing optimized route: ${entry.foodItem?.title || 'food'} to ${entry.demandCenter?.name || 'receiver'}.`);
   };
 
   return (
@@ -487,6 +766,127 @@ const FreshnessLab = () => {
                 </div>
               </article>
             ))}
+          </div>
+        </article>
+
+        <article className="ops-card lab-card sync-card">
+          <div className="section-header">
+            <div>
+              <p className="eyebrow">Google Sheets input</p>
+              <h2>Import IoT telemetry queue</h2>
+            </div>
+            <span className={`status-pill ${syncStatus?.configured ? 'risk-low' : 'risk-medium'}`}>
+              {syncStatus?.configured ? 'Configured' : 'Needs token'}
+            </span>
+          </div>
+          <div className="sheet-sync-grid">
+            <label className="sync-token-field">
+              Sync token
+              <input
+                type="password"
+                value={syncToken}
+                onChange={(e) => setSyncToken(e.target.value)}
+                placeholder="SHEETS_SYNC_TOKEN"
+              />
+            </label>
+            <div className="sync-actions">
+              <button className="btn-secondary" type="button" onClick={fetchSheetsStatus}>Check status</button>
+              <button className="btn-primary" type="button" onClick={importSheetsTelemetry} disabled={syncingSheets}>
+                {syncingSheets ? 'Importing...' : 'Import rows'}
+              </button>
+            </div>
+          </div>
+          <div className="selected-food-strip sync-status-strip">
+            <span><strong>{syncStatus?.lastImport?.processed ?? 0}</strong><small>Processed</small></span>
+            <span><strong>{syncStatus?.lastImport?.unsafe ?? 0}</strong><small>Unsafe</small></span>
+            <span><strong>{syncStatus?.lastImport?.duplicate ?? 0}</strong><small>Duplicates</small></span>
+            <span><strong>{syncStatus?.lastImport?.failed ?? 0}</strong><small>Failed</small></span>
+          </div>
+          {syncMessage && <div className="notice">{syncMessage}</div>}
+        </article>
+
+        <article className="ops-card lab-card dispatch-card">
+          <div className="section-header">
+            <div>
+              <p className="eyebrow">Dispatch optimizer</p>
+              <h2>Priority food-to-center routes</h2>
+            </div>
+            <button className="btn-primary" type="button" onClick={loadDispatchQueue} disabled={loadingDispatch}>
+              {loadingDispatch ? 'Refreshing...' : 'Refresh queue'}
+            </button>
+          </div>
+          {dispatchStatus && <div className="notice">{dispatchStatus}</div>}
+          <DispatchMap
+            allocations={allocations}
+            activeAllocationKey={activeAllocationKey}
+            onSelectAllocation={setActiveAllocationKey}
+          />
+          {activeAllocation && (
+            <div className="dispatch-execution-panel">
+              <span>
+                <strong>{activeAllocation.foodItem?.title}</strong>
+                <small>To {activeAllocation.demandCenter?.name}</small>
+              </span>
+              <span>
+                <strong>{activeAllocation.allocation?.score ?? 0}</strong>
+                <small>Allocation score</small>
+              </span>
+              <span>
+                <strong>{formatDuration(activeAllocation.route?.durationSeconds)}</strong>
+                <small>Travel time</small>
+              </span>
+              <span>
+                <strong>{formatDateTime(activeAllocation.allocation?.effectiveExpiryDate)}</strong>
+                <small>Freshness deadline</small>
+              </span>
+              <div className="dispatch-execution-actions">
+                <a
+                  className="btn-secondary link-button"
+                  href={activeNavigationUrl || undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-disabled={!activeNavigationUrl}
+                >
+                  Open navigation
+                </a>
+                <button className="btn-primary" type="button" onClick={() => executeAllocation(activeAllocation)}>
+                  {executedAllocationKey === allocationKey(activeAllocation) ? 'Route executing' : 'Execute route'}
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="dispatch-list">
+            {allocations.map((entry) => (
+              <article
+                className={`queue-row dispatch-row ${allocationKey(entry) === activeAllocationKey ? 'active-dispatch-row' : ''}`}
+                key={allocationKey(entry)}
+              >
+                <div>
+                  <p className="eyebrow">{entry.foodItem.category || 'general'}</p>
+                  <h3>{entry.foodItem.title}</h3>
+                  <p>{entry.foodItem.pickupAddress || entry.foodItem.location}</p>
+                  <small>To {entry.demandCenter.name} - {entry.demandCenter.urgency} demand</small>
+                </div>
+                <div className="queue-meta dispatch-meta">
+                  <span className={`status-pill ${routeRiskClass(entry.expiry?.riskLevel)}`}>{entry.expiry?.riskLevel || 'unknown'}</span>
+                  <span className={`status-pill ${freshnessClass(entry.allocation?.freshness?.state)}`}>{freshnessLabel(entry.allocation?.freshness?.state)}</span>
+                  <strong>{entry.allocation?.score ?? 0}</strong>
+                  <small>{formatDistance((entry.route?.distanceMeters || 0) / 1000)}</small>
+                  <small>{formatDuration(entry.route?.durationSeconds)}</small>
+                  <small>{formatDateTime(entry.allocation?.effectiveExpiryDate)}</small>
+                </div>
+                <p className="dispatch-reason">{entry.allocation?.reason}</p>
+                <div className="dispatch-row-actions">
+                  <button className="btn-secondary" type="button" onClick={() => setActiveAllocationKey(allocationKey(entry))}>
+                    Map route
+                  </button>
+                  <button className="btn-primary" type="button" onClick={() => executeAllocation(entry)}>
+                    {executedAllocationKey === allocationKey(entry) ? 'Executing' : 'Execute route'}
+                  </button>
+                </div>
+              </article>
+            ))}
+            {allocations.length === 0 && <div className="empty-state compact-empty">No feasible dispatch routes yet.</div>}
           </div>
         </article>
       </section>

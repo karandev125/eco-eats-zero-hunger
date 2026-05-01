@@ -29,6 +29,12 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    coordinates: {
+        lat: { type: Number },
+        lng: { type: Number }
+    },
+    geocodeProvider: { type: String },
+    geocodedAt: { type: Date },
     organization: {
         type: String,
         default: "" 

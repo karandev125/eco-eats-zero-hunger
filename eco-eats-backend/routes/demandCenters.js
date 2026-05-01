@@ -11,6 +11,10 @@ const {
     buildRouteFeasibility,
     scoreFoodItem
 } = require('../services/allocationService');
+const {
+    buildAvailableFoodFilter,
+    buildFoodDemandAllocations
+} = require('../services/allocationQueueService');
 
 function parseBoolean(value, defaultValue) {
     if (value === undefined) return defaultValue;
@@ -47,6 +51,27 @@ router.get('/', async (req, res) => {
         return res.status(200).json(results);
     } catch (err) {
         return res.status(500).json({ message: 'Failed to load demand centers.', error: err.message });
+    }
+});
+
+router.get('/allocations', async (req, res) => {
+    try {
+        const now = new Date();
+        const limit = Number.parseInt(req.query.limit || '25', 10);
+        const foodItems = await FoodItem.find(buildAvailableFoodFilter(now, {
+            donorId: req.query.donorId
+        }))
+            .populate('donor', 'username organization address phone')
+            .limit(100);
+        const demandCenters = await DemandCenter.find({ active: true }).limit(100);
+        const allocations = await buildFoodDemandAllocations(foodItems, demandCenters, {
+            now,
+            limit: Number.isFinite(limit) ? limit : 25
+        });
+
+        return res.status(200).json(allocations);
+    } catch (err) {
+        return res.status(500).json({ message: 'Failed to build dispatch allocation queue.', error: err.message });
     }
 });
 

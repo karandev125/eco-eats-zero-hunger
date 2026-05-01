@@ -8,6 +8,7 @@ const foodRoute = require('./routes/food');
 const routeAnalyzerRoute = require('./routes/routeAnalyzer');
 const iotRoute = require('./routes/iot');
 const demandCenterRoute = require('./routes/demandCenters');
+const { startSheetsTelemetryPolling } = require('./services/sheetsTelemetryService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -103,6 +104,7 @@ async function startServer() {
                 missingEnv: [],
                 databaseError: null
             };
+            startSheetsTelemetryPolling();
         } catch (err) {
             startupState = {
                 mode: 'degraded',

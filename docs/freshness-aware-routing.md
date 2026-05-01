@@ -33,6 +33,39 @@ is set in backend `.env`, include it as:
 x-device-token: YOUR_TOKEN
 ```
 
+## Google Sheets Queue
+
+The IoT device can also append readings to Google Sheets. Configure the backend with a Google
+service account and set `GOOGLE_SHEETS_SPREADSHEET_ID`, `GOOGLE_SHEETS_TELEMETRY_RANGE`,
+`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, and `SHEETS_SYNC_TOKEN`.
+
+The telemetry tab should use these columns:
+
+```text
+readingId, observedAt, deviceId, foodItemId, temperatureC, humidityPct, gasLevel, source
+```
+
+For the live hardware sheet, the importer also accepts:
+
+```text
+Time, MQ2, MQ3, MQ135, Temperature, Humidity
+```
+
+In that format, `Time` becomes the sensor timestamp, `Temperature` and `Humidity` map directly,
+and the gas level is the maximum value across the MQ columns. If the sheet does not include a
+`deviceId` or `foodItemId`, set `GOOGLE_SHEETS_DEFAULT_DEVICE_ID` to a device ID linked to a food
+listing.
+
+Import queued readings:
+
+```text
+POST /api/iot/sheets/import
+x-sync-token: YOUR_SYNC_TOKEN
+```
+
+The importer records duplicate, invalid, unmatched, and unsafe rows in MongoDB audit history, then
+updates the linked food listing with the same freshness model used by direct device telemetry.
+
 ## Freshness Preview
 
 The simulator uses:
@@ -63,6 +96,12 @@ Rank destinations for one food listing:
 GET /api/demand-centers/matches/:foodItemId
 ```
 
+Build the dispatch queue across available listings:
+
+```text
+GET /api/demand-centers/allocations?limit=25
+```
+
 The match score considers:
 
 - current freshness state and effective expiry;
@@ -79,4 +118,5 @@ The match score considers:
 3. Move the temperature, humidity, and gas sliders.
 4. Watch freshness score and delivery deadline update.
 5. Attach telemetry to a real food item when MongoDB is configured.
-6. Add demand centers, then rank best destinations for a food item.
+6. Import Sheets telemetry from the Freshness Lab when the device has written rows.
+7. Add demand centers, then rank best destinations for a food item or use the dispatch queue.

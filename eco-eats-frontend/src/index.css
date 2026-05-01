@@ -407,6 +407,10 @@ textarea {
   border-bottom: 1px solid var(--ops-border);
 }
 
+.ops-hero > * {
+  min-width: 0;
+}
+
 .compact-hero {
   min-height: auto;
   text-align: left;
@@ -573,6 +577,16 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section-header > * {
+  min-width: 0;
+}
+
+.section-header > button,
+.section-header > .status-pill {
+  flex-shrink: 0;
 }
 
 .section-header h2,
@@ -801,6 +815,102 @@ textarea {
   overflow: hidden;
 }
 
+.live-ops-grid {
+  grid-template-columns: minmax(0, 1.28fr) minmax(360px, 0.72fr);
+}
+
+.live-map-card,
+.live-route-panel {
+  align-self: start;
+}
+
+.live-map-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.live-map-notice {
+  margin-top: 14px;
+}
+
+.live-map-shell {
+  position: relative;
+  min-height: 520px;
+}
+
+.live-ops-map {
+  min-height: 520px;
+  background: #eef5f0;
+}
+
+.live-ops-map.leaflet-container,
+.live-map-shell .leaflet-container {
+  min-height: 520px;
+}
+
+.live-map-empty {
+  position: absolute;
+  inset: 32px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  text-align: center;
+  border: 1px dashed #c8d8cd;
+  border-radius: 8px;
+  background: rgba(251, 252, 251, 0.9);
+  color: var(--ops-muted);
+  pointer-events: none;
+  z-index: 460;
+}
+
+.live-map-empty strong {
+  color: var(--ops-text);
+}
+
+.live-map-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 18px rgba(23, 35, 31, 0.24);
+}
+
+.live-map-icon span {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.36);
+}
+
+.live-map-icon.pickup-pin {
+  color: var(--ops-green);
+}
+
+.live-map-icon.destination-pin {
+  color: var(--ops-blue);
+}
+
+.live-map-icon.receiver-pin {
+  color: #7b4aa8;
+}
+
+.live-map-icon.risk-medium {
+  color: var(--ops-amber);
+}
+
+.live-map-icon.risk-high {
+  color: var(--ops-red);
+}
+
+.live-map-icon.active {
+  transform: scale(1.16);
+  box-shadow: 0 10px 26px rgba(23, 35, 31, 0.34);
+}
+
 .queue-list {
   display: grid;
   gap: 12px;
@@ -829,6 +939,97 @@ textarea {
   justify-items: end;
   color: var(--ops-muted);
   font-weight: 700;
+}
+
+.active-route-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(82px, auto) minmax(118px, auto);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.active-route-summary span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #d7e7dc;
+  border-radius: 6px;
+  background: #f7fbf8;
+}
+
+.active-route-summary strong {
+  color: var(--ops-text);
+  overflow-wrap: anywhere;
+}
+
+.active-route-summary small {
+  color: var(--ops-muted);
+  font-weight: 800;
+}
+
+.live-route-list {
+  max-height: 650px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.live-route-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, auto);
+  align-items: start;
+  cursor: pointer;
+}
+
+.live-route-row:hover {
+  border-color: #a8cabe;
+  background: #f4faf6;
+}
+
+.active-live-route {
+  border-color: #a8cabe;
+  background: #f0f8f4;
+  box-shadow: inset 4px 0 0 var(--ops-green);
+}
+
+.live-route-main {
+  min-width: 0;
+}
+
+.live-route-main small,
+.live-route-reason {
+  color: var(--ops-muted);
+  line-height: 1.4;
+}
+
+.live-route-meta {
+  align-content: start;
+}
+
+.live-route-meta strong {
+  color: var(--ops-text);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.live-route-reason {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.live-route-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.live-route-actions .btn-primary,
+.live-route-actions .btn-secondary {
+  min-height: 38px;
+  padding: 8px 12px;
 }
 
 .route-map-shell {
@@ -874,6 +1075,202 @@ textarea {
   background: #fbfcfb;
 }
 
+.route-discovery-layout {
+  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+}
+
+.route-discovery-panel {
+  align-self: start;
+}
+
+.route-discovery-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.route-pickup-map-shell {
+  position: relative;
+}
+
+.route-map-empty {
+  position: absolute;
+  inset: 24px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  text-align: center;
+  border: 1px dashed #c8d8cd;
+  border-radius: 8px;
+  background: rgba(251, 252, 251, 0.88);
+  color: var(--ops-muted);
+  pointer-events: none;
+  z-index: 460;
+}
+
+.route-map-empty strong {
+  color: var(--ops-text);
+}
+
+.selected-pickup-box {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #d7e7dc;
+  border-radius: 8px;
+  background: #f7fbf8;
+}
+
+.selected-pickup-box h2,
+.selected-pickup-box p {
+  margin: 0;
+}
+
+.route-food-list-card {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.route-food-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.route-food-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5eee8;
+  border-radius: 6px;
+  background: #fbfcfb;
+  cursor: pointer;
+}
+
+.route-food-card:hover,
+.active-route-food-card {
+  border-color: #a8cabe;
+  background: #f0f8f4;
+  box-shadow: inset 4px 0 0 var(--ops-green);
+}
+
+.route-food-card h3,
+.route-food-card p {
+  margin: 0;
+}
+
+.route-food-card p {
+  color: var(--ops-muted);
+  line-height: 1.4;
+}
+
+.route-food-meta {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  color: var(--ops-muted);
+  font-weight: 800;
+}
+
+.pickup-option-marker {
+  position: relative;
+  width: 42px !important;
+  height: 42px !important;
+  overflow: visible !important;
+  background: transparent;
+  border: 0;
+  color: var(--ops-green);
+}
+
+.pickup-option-marker .pickup-pin-dot {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 0;
+  border: 3px solid #ffffff;
+  background: currentColor;
+  transform: rotate(-45deg);
+  transform-origin: center;
+  box-shadow: 0 8px 18px rgba(23, 35, 31, 0.24), inset 0 0 0 8px rgba(255, 255, 255, 0.24);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.pickup-option-marker .pickup-pin-dot::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: 0.86;
+}
+
+.pickup-option-marker.pin-risk-low {
+  color: var(--ops-green);
+}
+
+.pickup-option-marker.pin-risk-medium {
+  color: var(--ops-amber);
+}
+
+.pickup-option-marker.pin-risk-high {
+  color: var(--ops-red);
+}
+
+.pickup-option-marker.receiver-home {
+  color: #7b4aa8;
+}
+
+.pickup-pin-preview {
+  position: absolute;
+  left: 46px;
+  top: 50%;
+  z-index: 700;
+  display: grid;
+  gap: 2px;
+  width: 178px;
+  padding: 8px 10px;
+  border: 1px solid #d7e7dc;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 26px rgba(23, 35, 31, 0.18);
+  color: var(--ops-text);
+  opacity: 0;
+  transform: translateY(-50%) translateX(-8px) scale(0.94);
+  transform-origin: left center;
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.pickup-pin-preview strong,
+.pickup-pin-preview small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickup-pin-preview small {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.pickup-option-marker:hover .pickup-pin-preview,
+.pickup-option-marker.active .pickup-pin-preview {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0) scale(1);
+}
+
+.pickup-option-marker:hover .pickup-pin-dot,
+.pickup-option-marker.active .pickup-pin-dot {
+  transform: rotate(-45deg) scale(1.14);
+  box-shadow: 0 10px 26px rgba(23, 35, 31, 0.34), inset 0 0 0 8px rgba(255, 255, 255, 0.24);
+}
+
 .confirm-btn {
   width: 100%;
 }
@@ -881,6 +1278,7 @@ textarea {
 .freshness-lab-grid {
   grid-template-columns: minmax(320px, 0.9fr) minmax(320px, 1.1fr);
   align-items: start;
+  grid-auto-flow: row;
 }
 
 .polished-lab-grid {
@@ -895,7 +1293,8 @@ textarea {
   display: grid;
   grid-template-columns: repeat(3, minmax(92px, 1fr));
   gap: 10px;
-  min-width: min(100%, 430px);
+  width: min(100%, 430px);
+  min-width: 0;
 }
 
 .lab-live-strip span,
@@ -929,6 +1328,14 @@ textarea {
   display: grid;
   gap: 16px;
   padding: 22px;
+}
+
+.freshness-lab-grid .ops-panel,
+.freshness-lab-grid .ops-card {
+  position: static;
+  top: auto;
+  align-self: start;
+  min-width: 0;
 }
 
 .simulator-panel label,
@@ -1202,6 +1609,148 @@ textarea {
   gap: 12px;
 }
 
+.sync-card,
+.dispatch-card {
+  grid-column: 1 / -1;
+}
+
+.sheet-sync-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.sync-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.sync-status-strip {
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+}
+
+.dispatch-list {
+  display: grid;
+  gap: 12px;
+}
+
+.dispatch-map-shell {
+  position: relative;
+  min-height: 440px;
+  border: 1px solid var(--ops-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #eef5f0;
+}
+
+.dispatch-map {
+  width: 100%;
+  min-height: 440px;
+}
+
+.dispatch-map-shell .leaflet-container {
+  min-height: 440px;
+}
+
+.dispatch-map-empty {
+  position: absolute;
+  inset: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #c8d8cd;
+  border-radius: 8px;
+  background: rgba(251, 252, 251, 0.88);
+  color: var(--ops-muted);
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.dispatch-execution-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(120px, 0.55fr)) auto;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.dispatch-execution-panel > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d7e7dc;
+  border-radius: 6px;
+  background: #f7fbf8;
+}
+
+.dispatch-execution-panel strong {
+  color: var(--ops-text);
+  overflow-wrap: anywhere;
+}
+
+.dispatch-execution-panel small {
+  color: var(--ops-muted);
+  font-weight: 800;
+}
+
+.dispatch-execution-actions {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.dispatch-execution-actions .btn-primary,
+.dispatch-execution-actions .btn-secondary {
+  min-width: 150px;
+}
+
+.dispatch-execution-actions .btn-secondary[aria-disabled="true"] {
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+.dispatch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, auto);
+  gap: 12px;
+}
+
+.active-dispatch-row {
+  border-color: #a8cabe;
+  background: #f0f8f4;
+  box-shadow: inset 4px 0 0 var(--ops-green);
+}
+
+.dispatch-meta {
+  align-content: center;
+}
+
+.dispatch-reason {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ops-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.dispatch-row-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.dispatch-row-actions .btn-primary,
+.dispatch-row-actions .btn-secondary {
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
 .modal-panel {
   border-radius: 8px;
   max-height: calc(100vh - 48px);
@@ -1357,8 +1906,10 @@ textarea {
 @media (max-width: 1060px) {
   .search-layout,
   .order-layout,
+  .route-discovery-layout,
   .home-command,
   .ops-grid,
+  .live-ops-grid,
   .freshness-lab-grid,
   .polished-lab-grid {
     grid-template-columns: 1fr;
@@ -1382,6 +1933,17 @@ textarea {
   .dashboard-rail {
     border-right: none;
     border-bottom: 1px solid var(--ops-border);
+  }
+}
+
+@media (max-width: 900px) {
+  .ops-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lab-live-strip {
+    width: 100%;
   }
 }
 
@@ -1410,11 +1972,45 @@ textarea {
     padding: 22px 16px;
   }
 
+  .section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .section-header > .status-pill {
+    align-self: flex-start;
+  }
+
+  .section-header > button {
+    width: 100%;
+  }
+
+  .compact-hero h1,
+  .home-command h1,
+  .dashboard-topbar h1 {
+    font-size: 2rem;
+    line-height: 1.08;
+  }
+
+  .compact-hero p,
+  .home-command p,
+  .dashboard-topbar p {
+    max-width: none;
+  }
+
   .food-result-card,
   .metrics-grid,
   .filter-grid,
   .food-metrics-grid,
+  .route-discovery-actions,
+  .route-food-card,
+  .active-route-summary,
+  .live-route-row,
   .lab-form-grid,
+  .sheet-sync-grid,
+  .sync-status-strip,
+  .dispatch-execution-panel,
+  .dispatch-row,
   .preset-grid,
   .selected-food-strip,
   .lab-live-strip,
@@ -1447,8 +2043,26 @@ textarea {
 
   .route-map,
   .route-map-shell,
+  .live-ops-map,
+  .live-map-shell,
+  .live-map-shell .leaflet-container,
+  .dispatch-map,
+  .dispatch-map-shell,
+  .dispatch-map-shell .leaflet-container,
   .ops-map {
     min-height: 420px;
+  }
+
+  .dispatch-execution-actions,
+  .dispatch-row-actions {
+    justify-content: stretch;
+  }
+
+  .dispatch-execution-actions .btn-primary,
+  .dispatch-execution-actions .btn-secondary,
+  .dispatch-row-actions .btn-primary,
+  .dispatch-row-actions .btn-secondary {
+    width: 100%;
   }
 }
 

@@ -92,9 +92,26 @@ router.put('/update/:id', async (req, res) => {
             if (req.body[field] !== undefined) updates[field] = req.body[field];
         });
 
+        const existingUser = await User.findById(req.params.id);
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const addressChanged = updates.address !== undefined && updates.address !== existingUser.address;
+        const updateOperation = { $set: updates };
+
+        if (addressChanged) {
+            updateOperation.$unset = {
+                coordinates: "",
+                geocodeProvider: "",
+                geocodedAt: ""
+            };
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
-            { $set: updates },
+            updateOperation,
             { new: true }
         );
 

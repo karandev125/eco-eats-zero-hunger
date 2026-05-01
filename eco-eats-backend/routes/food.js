@@ -4,7 +4,8 @@ const User = require('../models/User');
 const {
     calculateDistanceMeters,
     geocodeAddress,
-    normalizeCoordinates
+    normalizeCoordinates,
+    routeBetween
 } = require('../services/locationService');
 const {
     estimateMealsFromQuantity,
@@ -12,6 +13,10 @@ const {
     resolveFreshnessInfo,
     scoreFoodItem
 } = require('../services/allocationService');
+const {
+    buildAvailableFoodFilter,
+    buildReceiverFoodOptions
+} = require('../services/allocationQueueService');
 const {
     buildFreshnessSnapshot,
     normalizeSensorReading
@@ -69,6 +74,51 @@ function buildFoodResponse(item, context = {}) {
     };
 }
 
+function sanitizePoint(point = {}) {
+    const coordinates = normalizeCoordinates(point.coordinates || point);
+
+    if (!coordinates) return undefined;
+
+    return {
+        address: point.address || point.label || point.displayName,
+        displayName: point.displayName || point.address || point.label,
+        coordinates
+    };
+}
+
+async function resolveReceiverPoint(receiver) {
+    const cachedCoordinates = normalizeCoordinates(receiver.coordinates);
+
+    if (cachedCoordinates) {
+        return {
+            address: receiver.address,
+            displayName: receiver.address,
+            coordinates: cachedCoordinates,
+            provider: receiver.geocodeProvider || 'cached'
+        };
+    }
+
+    if (!receiver.address) {
+        throw new Error('Receiver profile needs an address before route options can be calculated.');
+    }
+
+    const geocoded = await geocodeAddress(receiver.address);
+
+    if (!geocoded?.coordinates) {
+        throw new Error('Could not geocode receiver address.');
+    }
+
+    await User.findByIdAndUpdate(receiver._id, {
+        $set: {
+            coordinates: geocoded.coordinates,
+            geocodeProvider: geocoded.provider,
+            geocodedAt: new Date()
+        }
+    });
+
+    return geocoded;
+}
+
 function sortFood(items, sortMode) {
     const mode = sortMode || 'bestmatch';
 
@@ -102,6 +152,8 @@ function sanitizeRouteSummary(routeSummary = {}) {
         freshnessScore: routeSummary.freshness?.score ?? routeSummary.freshnessScore,
         effectiveExpiryDate: routeSummary.expiry?.effectiveExpiryDate || routeSummary.effectiveExpiryDate,
         analyzedAt: new Date(),
+        pickup: sanitizePoint(routeSummary.pickup),
+        dropoff: sanitizePoint(routeSummary.dropoff),
         geometry: routeSummary.geometry
     };
 }
@@ -171,6 +223,39 @@ router.get('/orders/:userId', async (req, res) => {
         return res.status(200).json(orders.map((item) => buildFoodResponse(item)));
     } catch (err) {
         return res.status(500).json({ message: 'Failed to load orders.', error: err.message });
+    }
+});
+
+// Rank currently available food against a receiver's saved destination.
+router.get('/receiver-options/:receiverId', async (req, res) => {
+    try {
+        const receiver = await User.findById(req.params.receiverId);
+
+        if (!receiver) {
+            return res.status(404).json({ message: 'Receiver not found.' });
+        }
+
+        if (receiver.role !== 'receiver') {
+            return res.status(403).json({ message: 'Only receiver profiles can request receiver route options.' });
+        }
+
+        const now = new Date();
+        const limit = Number.parseInt(req.query.limit || '25', 10);
+        const radiusKm = parsePositiveNumber(req.query.radiusKm) || 25;
+        const receiverPoint = await resolveReceiverPoint(receiver);
+        const foodItems = await FoodItem.find(buildAvailableFoodFilter(now))
+            .populate('donor', 'username organization address phone')
+            .limit(100);
+        const options = await buildReceiverFoodOptions(foodItems, receiverPoint, {
+            now,
+            limit: Number.isFinite(limit) ? limit : 25,
+            radiusKm,
+            routeBetweenFn: routeBetween
+        });
+
+        return res.status(200).json(options);
+    } catch (err) {
+        return res.status(500).json({ message: 'Failed to build receiver route options.', error: err.message });
     }
 });
 
@@ -337,5 +422,9 @@ router.get('/user/:userId', async (req, res) => {
         return res.status(500).json({ message: 'Failed to load donor food.', error: err.message });
     }
 });
+
+router._test = {
+    sanitizeRouteSummary
+};
 
 module.exports = router;

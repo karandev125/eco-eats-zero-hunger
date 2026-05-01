@@ -67,6 +67,22 @@ const FoodItemSchema = new mongoose.Schema({
         freshnessScore: { type: Number },
         effectiveExpiryDate: { type: Date },
         analyzedAt: { type: Date },
+        pickup: {
+            address: { type: String },
+            displayName: { type: String },
+            coordinates: {
+                lat: { type: Number },
+                lng: { type: Number }
+            }
+        },
+        dropoff: {
+            address: { type: String },
+            displayName: { type: String },
+            coordinates: {
+                lat: { type: Number },
+                lng: { type: Number }
+            }
+        },
         geometry: { type: Object }
     }
     
@@ -77,7 +93,7 @@ FoodItemSchema.index({ isAvailable: 1, status: 1, expiryDate: 1 });
 FoodItemSchema.index({ claimedBy: 1 });
 FoodItemSchema.index({ 'freshness.effectiveExpiryDate': 1, 'freshness.state': 1 });
 
-FoodItemSchema.pre('validate', function syncLegacyLocationFields(next) {
+FoodItemSchema.pre('validate', function syncLegacyLocationFields() {
     if (!this.pickupAddress && this.location) {
         this.pickupAddress = this.location;
     }
@@ -106,7 +122,6 @@ FoodItemSchema.pre('validate', function syncLegacyLocationFields(next) {
         this.status = 'claimed';
     }
 
-    next();
 });
 
 module.exports = mongoose.model('FoodItem', FoodItemSchema);

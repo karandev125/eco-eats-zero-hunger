@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 const router = require('express').Router();
-const FoodItem = require('../models/FoodItem');
 const {
-    buildFreshnessSnapshot,
-    normalizeSensorReading
+    buildFreshnessSnapshot
 } = require('../services/freshnessService');
-
-const MAX_SENSOR_READINGS = Number(process.env.MAX_SENSOR_READINGS_PER_ITEM || 50);
+const { TelemetryError, attachTelemetryToFood } = require('../services/telemetryService');
+const {
+    getSheetsStatus,
+    importTelemetryFromSheets
+} = require('../services/sheetsTelemetryService');
 
 function databaseReady() {
     return mongoose.connection.readyState === 1;
@@ -22,16 +23,17 @@ function requireDeviceToken(req, res) {
     return false;
 }
 
-function findFoodQuery(body) {
-    if (body.foodItemId) return { _id: body.foodItemId };
-    if (body.deviceId) {
-        return {
-            deviceId: body.deviceId,
-            $or: [{ status: 'available' }, { status: { $exists: false } }]
-        };
+function requireSyncToken(req, res) {
+    if (!process.env.SHEETS_SYNC_TOKEN) {
+        res.status(503).json({ message: 'SHEETS_SYNC_TOKEN is required before Google Sheets sync can run.' });
+        return false;
     }
 
-    return null;
+    const token = req.get('x-sync-token');
+    if (token === process.env.SHEETS_SYNC_TOKEN) return true;
+
+    res.status(401).json({ message: 'Invalid Google Sheets sync token.' });
+    return false;
 }
 
 router.post('/freshness-preview', (req, res) => {
@@ -52,45 +54,7 @@ router.post('/telemetry', async (req, res) => {
             return res.status(503).json({ message: 'Database is unavailable. Telemetry cannot be attached yet.' });
         }
 
-        const query = findFoodQuery(req.body);
-        if (!query) {
-            return res.status(400).json({ message: 'foodItemId or deviceId is required.' });
-        }
-
-        const foodItem = await FoodItem.findOne(query).sort({ createdAt: -1 });
-        if (!foodItem) {
-            return res.status(404).json({ message: 'No active food item found for this telemetry.' });
-        }
-
-        const reading = normalizeSensorReading(req.body);
-        const freshness = buildFreshnessSnapshot({
-            ...reading,
-            readingAt: reading.observedAt
-        }, {
-            expiryDate: foodItem.expiryDate,
-            category: foodItem.category
-        });
-
-        if (req.body.deviceId && !foodItem.deviceId) {
-            foodItem.deviceId = req.body.deviceId;
-        }
-
-        foodItem.sensorReadings.push({
-            temperatureC: reading.temperatureC,
-            humidityPct: reading.humidityPct,
-            gasLevel: reading.gasLevel,
-            gasIndex: reading.gasIndex,
-            observedAt: reading.observedAt,
-            receivedAt: new Date(),
-            source: reading.source
-        });
-
-        if (foodItem.sensorReadings.length > MAX_SENSOR_READINGS) {
-            foodItem.sensorReadings.splice(0, foodItem.sensorReadings.length - MAX_SENSOR_READINGS);
-        }
-
-        foodItem.freshness = freshness;
-        await foodItem.save();
+        const { foodItem, freshness } = await attachTelemetryToFood(req.body);
 
         return res.status(200).json({
             message: 'Telemetry received.',
@@ -99,7 +63,35 @@ router.post('/telemetry', async (req, res) => {
             freshness
         });
     } catch (err) {
+        if (err instanceof TelemetryError) {
+            return res.status(err.statusCode).json({ message: err.message });
+        }
+
         return res.status(500).json({ message: 'Failed to process telemetry.', error: err.message });
+    }
+});
+
+router.get('/sheets/status', (req, res) => {
+    if (!requireSyncToken(req, res)) return null;
+
+    return res.status(200).json({
+        ...getSheetsStatus(),
+        databaseReady: databaseReady()
+    });
+});
+
+router.post('/sheets/import', async (req, res) => {
+    try {
+        if (!requireSyncToken(req, res)) return null;
+
+        if (!databaseReady()) {
+            return res.status(503).json({ message: 'Database is unavailable. Google Sheets telemetry cannot be imported yet.' });
+        }
+
+        const summary = await importTelemetryFromSheets();
+        return res.status(200).json(summary);
+    } catch (err) {
+        return res.status(500).json({ message: 'Failed to import Google Sheets telemetry.', error: err.message });
     }
 });
 

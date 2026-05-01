@@ -25,6 +25,16 @@ Create `eco-eats-backend\.env` from `eco-eats-backend\.env.example` and set:
 - `SENSOR_STALE_MINUTES`: defaults to `60`.
 - `MAX_SENSOR_READINGS_PER_ITEM`: defaults to `50`.
 - `IOT_DEVICE_TOKEN`: optional token required by `/api/iot/telemetry`.
+- `GOOGLE_SHEETS_SPREADSHEET_ID`: spreadsheet used as the IoT telemetry queue.
+- `GOOGLE_SHEETS_URL` or `GOOGLE_SHEETS_PUBLIC_CSV_URL`: optional public Sheet source when service-account credentials are not used.
+- `GOOGLE_SHEETS_PUBLIC_GID`: tab gid for public CSV export; defaults to `0`.
+- `GOOGLE_SHEETS_TELEMETRY_RANGE`: defaults to `Telemetry!A2:H`.
+- `GOOGLE_SHEETS_HAS_HEADER`: set `true` when importing a public CSV with a header row.
+- `GOOGLE_SHEETS_DEFAULT_DEVICE_ID`: fallback device ID for hardware sheets without a device column.
+- `GOOGLE_SHEETS_IMPORT_MAX_ROWS`: latest live rows to import per run; defaults to `150`.
+- `GOOGLE_SERVICE_ACCOUNT_EMAIL` and `GOOGLE_PRIVATE_KEY`: service-account credentials with read access to the Sheet.
+- `SHEETS_SYNC_TOKEN`: token required by `/api/iot/sheets/status` and `/api/iot/sheets/import`.
+- `SHEETS_POLL_INTERVAL_MS`: optional background polling interval; set `0` to disable.
 
 Create `eco-eats-frontend\.env` from `eco-eats-frontend\.env.example`:
 
@@ -73,4 +83,12 @@ Health check:
 
 ```text
 GET http://localhost:5000/api/health
+```
+
+Google Sheets telemetry sync:
+
+```text
+GET  http://localhost:5000/api/iot/sheets/status
+POST http://localhost:5000/api/iot/sheets/import
+Header: x-sync-token: SHEETS_SYNC_TOKEN
 ```
