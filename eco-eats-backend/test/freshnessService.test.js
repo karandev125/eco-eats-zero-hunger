@@ -2,7 +2,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
     buildFreshnessSnapshot,
-    normalizeGasIndex
+    normalizeGasIndex,
+    q10Rate,
+    temperatureBand
 } = require('../services/freshnessService');
 
 test('normalizeGasIndex accepts percentage and raw ppm-style values', () => {
@@ -24,6 +26,7 @@ test('buildFreshnessSnapshot keeps healthy sensor readings shippable', () => {
     assert.equal(snapshot.state, 'excellent');
     assert.ok(snapshot.score >= 85);
     assert.equal(snapshot.effectiveExpiryDate.toISOString(), expiryDate.toISOString());
+    assert.equal(snapshot.model.temperatureBand, 'safe_cold');
 });
 
 test('buildFreshnessSnapshot shortens shelf life for risky sensor readings', () => {
@@ -38,7 +41,8 @@ test('buildFreshnessSnapshot shortens shelf life for risky sensor readings', () 
 
     assert.equal(snapshot.state, 'critical');
     assert.ok(snapshot.effectiveExpiryDate < expiryDate);
-    assert.ok(snapshot.remainingShelfLifeMinutes < 8 * 60);
+    assert.equal(snapshot.model.safetyCapMinutes, 120);
+    assert.ok(snapshot.remainingShelfLifeMinutes <= 120);
 });
 
 test('buildFreshnessSnapshot marks very high gas readings unsafe', () => {
@@ -52,4 +56,23 @@ test('buildFreshnessSnapshot marks very high gas readings unsafe', () => {
 
     assert.equal(snapshot.state, 'unsafe');
     assert.equal(snapshot.remainingShelfLifeMinutes, 0);
+});
+
+test('q10Rate increases spoilage pressure as temperature rises', () => {
+    assert.equal(q10Rate(4, { idealTempC: 4, q10: 2 }), 1);
+    assert.equal(q10Rate(14, { idealTempC: 4, q10: 2 }), 2);
+    assert.equal(q10Rate(24, { idealTempC: 4, q10: 2 }), 4);
+});
+
+test('temperatureBand recognizes hot holding for prepared meals', () => {
+    const profile = {
+        tcs: true,
+        coldSafeMaxC: 5,
+        hotHoldingMinC: 57,
+        dangerMaxC: 60
+    };
+
+    assert.equal(temperatureBand(4, profile), 'safe_cold');
+    assert.equal(temperatureBand(22, profile), 'danger_zone');
+    assert.equal(temperatureBand(58, profile), 'hot_holding');
 });

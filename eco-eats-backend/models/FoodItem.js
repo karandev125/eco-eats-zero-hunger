@@ -41,6 +41,8 @@ const FoodItemSchema = new mongoose.Schema({
         effectiveExpiryDate: { type: Date },
         remainingShelfLifeMinutes: { type: Number },
         confidence: { type: Number, default: 0 },
+        recommendation: { type: String },
+        model: { type: Object },
         signals: [{ type: String }]
     },
     isAvailable: { type: Boolean, default: true },

@@ -883,6 +883,47 @@ textarea {
   align-items: start;
 }
 
+.polished-lab-grid {
+  grid-template-columns: minmax(320px, 420px) minmax(360px, 1fr);
+}
+
+.freshness-hero {
+  align-items: center;
+}
+
+.lab-live-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  gap: 10px;
+  min-width: min(100%, 430px);
+}
+
+.lab-live-strip span,
+.selected-food-strip span,
+.model-grid span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e5eee8;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.lab-live-strip strong,
+.selected-food-strip strong,
+.model-grid strong {
+  color: var(--ops-text);
+  overflow-wrap: anywhere;
+}
+
+.lab-live-strip small,
+.selected-food-strip small,
+.model-grid small {
+  color: var(--ops-muted);
+  font-weight: 800;
+}
+
 .simulator-panel,
 .lab-card {
   display: grid;
@@ -932,6 +973,197 @@ textarea {
   accent-color: var(--ops-green);
 }
 
+.slider-field small {
+  color: var(--ops-muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.sensor-tuning-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.42fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.sensor-slider-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.inline-freshness-score {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  min-height: 100%;
+  border: 1px solid #cfe0d4;
+  border-radius: 8px;
+  padding: 14px;
+  background: linear-gradient(180deg, #f8fcfa 0%, #eef8f1 100%);
+}
+
+.inline-freshness-score.risk-medium {
+  border-color: #efd18b;
+  background: linear-gradient(180deg, #fffaf0 0%, #fff2d7 100%);
+}
+
+.inline-freshness-score.risk-high {
+  border-color: #efb4ac;
+  background: linear-gradient(180deg, #fff7f5 0%, #ffe9e5 100%);
+}
+
+.inline-score-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--ops-text);
+}
+
+.inline-score-value strong {
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  line-height: 0.9;
+}
+
+.inline-score-value span {
+  color: var(--ops-muted);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.inline-score-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.inline-score-meta span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.inline-score-meta strong {
+  color: var(--ops-text);
+  font-size: 0.95rem;
+  line-height: 1.15;
+}
+
+.inline-score-meta small {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.preset-button {
+  display: grid;
+  gap: 5px;
+  min-height: 74px;
+  border: 1px solid #dce4dc;
+  border-radius: 6px;
+  background: #fbfcfb;
+  color: var(--ops-text);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.preset-button:hover {
+  border-color: var(--ops-green);
+  background: #eef7f2;
+}
+
+.preset-button small {
+  color: var(--ops-muted);
+  line-height: 1.35;
+}
+
+.lab-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.lab-results-column {
+  display: grid;
+  gap: 16px;
+}
+
+.freshness-decision {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 18px;
+  align-items: center;
+  padding: 22px;
+  border: 1px solid #dce4dc;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--ops-shadow);
+}
+
+.freshness-decision h2 {
+  margin: 0;
+  line-height: 1.16;
+}
+
+.freshness-decision .food-metrics-grid {
+  grid-column: 1 / -1;
+}
+
+.freshness-score-ring {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  background: conic-gradient(var(--ops-green) 0 75%, #e5eee8 75% 100%);
+  border: 8px solid #ffffff;
+  box-shadow: 0 0 0 1px #dce4dc;
+}
+
+.freshness-score-ring strong {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ops-text);
+}
+
+.freshness-score-ring small {
+  color: var(--ops-muted);
+  font-weight: 800;
+}
+
+.freshness-decision.risk-medium .freshness-score-ring {
+  background: conic-gradient(var(--ops-amber) 0 62%, #f3d59a 62% 100%);
+}
+
+.freshness-decision.risk-high .freshness-score-ring {
+  background: conic-gradient(var(--ops-red) 0 42%, #efb4ac 42% 100%);
+}
+
+.model-card {
+  box-shadow: var(--ops-shadow);
+}
+
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.model-footnote {
+  margin: 0;
+  color: var(--ops-muted);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
 .freshness-summary {
   background: #fbfcfb;
 }
@@ -962,6 +1194,12 @@ textarea {
 
 .match-row {
   align-items: stretch;
+}
+
+.selected-food-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 120px) minmax(190px, 240px);
+  gap: 12px;
 }
 
 .modal-panel {
@@ -1121,7 +1359,8 @@ textarea {
   .order-layout,
   .home-command,
   .ops-grid,
-  .freshness-lab-grid {
+  .freshness-lab-grid,
+  .polished-lab-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1131,7 +1370,8 @@ textarea {
 
   .metrics-grid,
   .workflow-grid,
-  .about-grid {
+  .about-grid,
+  .model-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1174,11 +1414,35 @@ textarea {
   .metrics-grid,
   .filter-grid,
   .food-metrics-grid,
+  .lab-form-grid,
+  .preset-grid,
+  .selected-food-strip,
+  .lab-live-strip,
   .role-cards,
   .about-grid,
   .workflow-grid,
   .listing-form {
     grid-template-columns: 1fr;
+  }
+
+  .freshness-decision {
+    grid-template-columns: 1fr;
+  }
+
+  .sensor-tuning-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-freshness-score {
+    min-height: auto;
+  }
+
+  .inline-score-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .freshness-score-ring {
+    justify-self: start;
   }
 
   .route-map,
