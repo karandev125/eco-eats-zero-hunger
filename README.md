@@ -13,21 +13,12 @@
   <a href="#hardware-ai-decision-engine"><strong>Hardware AI</strong></a> |
   <a href="#product-experience"><strong>Product</strong></a> |
   <a href="#technical-architecture"><strong>Architecture</strong></a> |
-  <a href="#quick-start"><strong>Run Locally</strong></a> |
-  <a href="#portfolio-proof"><strong>Portfolio Proof</strong></a>
-</p>
-
-<p align="center">
-  <img alt="React" src="https://img.shields.io/badge/React-19-225e8f?style=for-the-badge">
-  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-Express-16805f?style=for-the-badge">
-  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Mongoose-0e6048?style=for-the-badge">
-  <img alt="IoT" src="https://img.shields.io/badge/Hardware-MQ%20%2B%20DHT-b7791f?style=for-the-badge">
-  <img alt="Routing" src="https://img.shields.io/badge/Routing-OSRM%20%2B%20Leaflet-6f4bb3?style=for-the-badge">
+  <a href="#quick-start"><strong>Run Locally</strong></a>
 </p>
 
 ---
 
-## The Pitch
+## Project Overview
 
 Eco Eats is a hardware AI logistics platform for rescuing surplus food. An MCU-based prototype sends **MQ gas** and **DHT temperature/humidity** readings through Google Sheets or direct API ingestion. The backend turns those readings into freshness state, sensor-adjusted expiry, route feasibility, and dispatch priority.
 
@@ -75,22 +66,9 @@ The output is a dispatch recommendation: freshness score, state, effective deliv
 
 ## System Flow
 
-```mermaid
-flowchart LR
-    Hardware["MQ + DHT + MCU prototype"] --> Sheets["Google Sheets telemetry queue"]
-    Hardware --> TelemetryAPI["Telemetry API"]
-    Sheets --> Importer["Sheets importer"]
-    TelemetryAPI --> Freshness["Freshness decision engine"]
-    Importer --> Freshness
-    Freshness --> FoodDB["MongoDB food listing"]
-    Donor["Donor dashboard"] --> FoodAPI["Food API"]
-    FoodAPI --> FoodDB
-    Receiver["Receiver dashboard"] --> Search["Search + allocation"]
-    FoodDB --> Search
-    Centers["Demand centers"] --> Search
-    Search --> Routing["OSRM/Nominatim route analysis"]
-    Routing --> Dispatch["Prioritized dispatch queue"]
-```
+<p align="center">
+  <img src="docs/assets/system-flow.svg" alt="Eco Eats system flow from hardware telemetry to dispatch queue" width="100%">
+</p>
 
 ## Technical Architecture
 
@@ -113,7 +91,7 @@ flowchart LR
 - Demand-center creation and matching by urgency, capacity, accepted categories, and route feasibility.
 - Dispatch queue ranking available food against active demand centers.
 - Health endpoint and degraded startup mode when MongoDB credentials are missing.
-- Seed data for a recruiter-friendly local demo.
+- Seed data for a clear local demo.
 
 ## Quick Start
 
@@ -206,23 +184,6 @@ npm.cmd run lint
 npm.cmd run build
 ```
 
-## Portfolio Proof
-
-This project is designed to show more than CRUD screens:
-
-- **Hardware integration:** MQ/DHT sensor telemetry is accepted through Sheets/API ingestion.
-- **AI-style decision logic:** Freshness, confidence, route feasibility, demand fit, and risk are converted into explainable dispatch scores.
-- **Full-stack depth:** React UI, Express APIs, MongoDB models, auth, maps, tests, seed data, and operational workflows.
-- **Social-impact framing:** The technical work maps to a real-world Zero Hunger logistics problem.
-
-Resume-ready bullets:
-
-- Built a hardware AI food rescue platform using React, Express, MongoDB, MQ/DHT telemetry, Google Sheets ingestion, and route-aware allocation.
-- Implemented a freshness decision engine that converts temperature, humidity, and gas readings into freshness state, effective expiry, confidence, and dispatch recommendations.
-- Integrated geocoding and route analysis to rank surplus food by delivery feasibility before claim confirmation.
-- Designed operations surfaces including dashboards, Freshness Lab, route analyzer, demand-center matching, and dispatch queue.
-- Added backend coverage for freshness modeling, allocation scoring, telemetry ingestion, Sheets imports, location services, and food routes.
-
 ## Roadmap
 
 - Train an ML spoilage prediction model using historical telemetry and confirmed outcomes.
@@ -236,4 +197,3 @@ Resume-ready bullets:
 - [MongoDB setup and demo seed](docs/simple-mongo-integration.md)
 - [Freshness-aware routing](docs/freshness-aware-routing.md)
 - [Frontend product roadmap](docs/frontend-vision-and-roadmap.md)
-- [Portfolio and resume notes](docs/portfolio-summary.md)

@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 680" role="img" aria-labelledby="title desc">
+  <title id="title">Eco Eats System Flow</title>
+  <desc id="desc">System flow showing hardware telemetry moving through Google Sheets or API ingestion, freshness scoring, food data, allocation, route analysis, and prioritized dispatch.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0d1117; }
+      .title { fill: #f0f6fc; font: 800 42px Arial, sans-serif; }
+      .subtitle { fill: #8b949e; font: 400 20px Arial, sans-serif; }
+      .node { fill: #161b22; stroke: #6e7681; stroke-width: 2.4; rx: 10; }
+      .hardware { stroke: #56d364; }
+      .data { stroke: #58a6ff; }
+      .engine { stroke: #d2a8ff; }
+      .action { stroke: #f2cc60; }
+      .label { fill: #f0f6fc; font: 800 18px Arial, sans-serif; }
+      .small { fill: #c9d1d9; font: 600 14px Arial, sans-serif; }
+      .line { fill: none; stroke: #8b949e; stroke-width: 3.2; }
+      .fresh { fill: none; stroke: #56d364; stroke-width: 3.6; }
+      .route { fill: none; stroke: #f2cc60; stroke-width: 3.4; }
+      .tag { fill: #21262d; stroke: #30363d; stroke-width: 1.5; rx: 16; }
+      .tag-text { fill: #8b949e; font: 800 13px Arial, sans-serif; letter-spacing: .08em; }
+    </style>
+    <marker id="arrow" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L11,6.5 L2,11 Z" fill="#8b949e" />
+    </marker>
+    <marker id="freshArrow" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L11,6.5 L2,11 Z" fill="#56d364" />
+    </marker>
+    <marker id="routeArrow" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L11,6.5 L2,11 Z" fill="#f2cc60" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1800" height="680" rx="28" />
+  <text x="62" y="78" class="title">System Flow</text>
+  <text x="62" y="112" class="subtitle">From hardware telemetry to freshness-aware route allocation.</text>
+
+  <rect x="62" y="160" width="250" height="74" class="node hardware" />
+  <text x="84" y="194" class="label">MQ + DHT + MCU</text>
+  <text x="84" y="217" class="small">Food-condition prototype</text>
+
+  <rect x="380" y="125" width="210" height="68" class="node data" />
+  <text x="405" y="165" class="label">Telemetry API</text>
+
+  <rect x="380" y="240" width="250" height="82" class="node data" />
+  <text x="405" y="274" class="label">Google Sheets queue</text>
+  <text x="405" y="298" class="small">Live hardware rows</text>
+
+  <rect x="690" y="240" width="220" height="82" class="node data" />
+  <text x="714" y="274" class="label">Sheets importer</text>
+  <text x="714" y="298" class="small">Audit + normalize</text>
+
+  <rect x="690" y="125" width="285" height="82" class="node engine" />
+  <text x="716" y="158" class="label">Freshness decision engine</text>
+  <text x="716" y="183" class="small">Score, state, effective expiry</text>
+
+  <rect x="410" y="420" width="220" height="70" class="node hardware" />
+  <text x="438" y="462" class="label">Donor dashboard</text>
+
+  <rect x="715" y="420" width="190" height="70" class="node data" />
+  <text x="746" y="462" class="label">Food API</text>
+
+  <rect x="1020" y="250" width="265" height="82" class="node data" />
+  <text x="1046" y="284" class="label">MongoDB FoodItem</text>
+  <text x="1046" y="308" class="small">Listing + freshness state</text>
+
+  <rect x="1020" y="95" width="250" height="70" class="node hardware" />
+  <text x="1048" y="137" class="label">Receiver dashboard</text>
+
+  <rect x="1020" y="420" width="230" height="70" class="node action" />
+  <text x="1048" y="462" class="label">Demand centers</text>
+
+  <rect x="1380" y="250" width="235" height="82" class="node engine" />
+  <text x="1406" y="284" class="label">Search + allocation</text>
+  <text x="1406" y="308" class="small">Freshness, meals, demand</text>
+
+  <rect x="1355" y="420" width="275" height="82" class="node action" />
+  <text x="1382" y="454" class="label">OSRM route analysis</text>
+  <text x="1382" y="478" class="small">Distance + delivery window</text>
+
+  <rect x="1470" y="560" width="270" height="74" class="node action" />
+  <text x="1496" y="594" class="label">Prioritized dispatch</text>
+  <text x="1496" y="617" class="small">Best feasible route first</text>
+
+  <path class="fresh" d="M312 182 C338 158 352 158 380 158" marker-end="url(#freshArrow)" />
+  <path class="fresh" d="M312 210 C344 254 350 281 380 281" marker-end="url(#freshArrow)" />
+  <path class="line" d="M630 281 H690" marker-end="url(#arrow)" />
+  <path class="line" d="M800 240 V207" marker-end="url(#arrow)" />
+  <path class="line" d="M590 159 H690" marker-end="url(#arrow)" />
+  <path class="fresh" d="M975 166 C1026 190 1048 220 1110 250" marker-end="url(#freshArrow)" />
+
+  <path class="line" d="M630 455 H715" marker-end="url(#arrow)" />
+  <path class="line" d="M905 455 C968 455 954 315 1020 303" marker-end="url(#arrow)" />
+  <path class="line" d="M1270 130 C1328 148 1340 247 1380 270" marker-end="url(#arrow)" />
+  <path class="line" d="M1285 291 H1380" marker-end="url(#arrow)" />
+  <path class="line" d="M1250 455 C1322 455 1304 319 1380 310" marker-end="url(#arrow)" />
+  <path class="route" d="M1498 332 V420" marker-end="url(#routeArrow)" />
+  <path class="route" d="M1498 502 C1515 535 1540 548 1585 560" marker-end="url(#routeArrow)" />
+
+  <rect x="62" y="560" width="420" height="48" class="tag" />
+  <text x="86" y="591" class="tag-text">HARDWARE SIGNALS DRIVE DELIVERY PRIORITY</text>
+</svg>

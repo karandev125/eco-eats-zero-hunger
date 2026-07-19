@@ -89,7 +89,7 @@
   <path class="fresh-line" d="M345 520 H420" marker-end="url(#greenArrow)" />
   <path class="fresh-line" d="M700 520 H775" marker-end="url(#greenArrow)" />
   <path class="fresh-line" d="M1075 520 H1150" marker-end="url(#greenArrow)" />
-  <path class="fresh-line" d="M1300 465 V350 H1240" marker-end="url(#greenArrow)" />
+  <path class="fresh-line" d="M1300 465 V322" marker-end="url(#greenArrow)" />
 
   <rect x="60" y="675" width="1480" height="250" fill="#fbfcfb" stroke="#dce4dc" stroke-width="2" rx="18" />
   <text x="90" y="710" class="lane-title">3. Demand, Allocation, And Routing</text>
@@ -147,5 +147,4 @@
   <path class="risk-line" d="M985 1042 H1055" marker-end="url(#redArrow)" />
   <path class="line" d="M1275 1042 H1345" marker-end="url(#arrow)" />
 
-  <text x="80" y="1088" class="small">Core rule: static expiry is only the donor estimate. The live sensor-adjusted effectiveExpiryDate is what routing and claiming use.</text>
 </svg>
