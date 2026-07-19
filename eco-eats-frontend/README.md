@@ -1,16 +1,35 @@
-# React + Vite
+# Eco Eats Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/Vite frontend for the Eco Eats hardware AI food rescue platform.
 
-Currently, two official plugins are available:
+## Product Screens
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- `Home` - hardware AI product entry point and role-specific calls to action.
+- `Dashboard` - donor and receiver operations workspace with metrics, listing/order history, live route options, and map views.
+- `ListItems` - receiver-facing food discovery ranked by urgency, freshness, and allocation score.
+- `OrderPage` - route check and claim confirmation before food is locked.
+- `RouteAnalyzer` - standalone pickup/dropoff feasibility analysis.
+- `FreshnessLab` - MQ/DHT sensor simulator, freshness scoring, Google Sheets telemetry import, demand-center ranking, and dispatch queue.
 
-## React Compiler
+## Local Setup
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+```powershell
+npm.cmd install
+Copy-Item .env.example .env
+npm.cmd run dev
+```
 
-## Expanding the ESLint configuration
+Default environment:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+## Checks
+
+```powershell
+npm.cmd run lint
+npm.cmd run build
+```
+
+The backend should be running on `http://localhost:5000` for network-backed pages. The app can render many shell screens without seeded data, but login, listings, demand centers, route allocation, and telemetry persistence require the MongoDB-backed API.

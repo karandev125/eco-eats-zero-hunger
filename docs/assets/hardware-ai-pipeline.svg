@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" role="img" aria-labelledby="title desc">
+  <title id="title">Eco Eats hardware AI pipeline</title>
+  <desc id="desc">MQ and DHT sensors send readings through an MCU into Google Sheets or the API, where Eco Eats scores freshness and builds route-aware dispatch decisions.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7faf7; }
+      .title { fill: #10221c; font: 800 32px Arial, sans-serif; }
+      .sub { fill: #5d6f67; font: 400 16px Arial, sans-serif; }
+      .node { fill: #ffffff; stroke: #d9e5dd; stroke-width: 2; rx: 20; }
+      .hardware { fill: #eef8f2; stroke: #16805f; }
+      .data { fill: #eef5fb; stroke: #225e8f; }
+      .engine { fill: #f6f1ff; stroke: #6f4bb3; }
+      .action { fill: #fff7e9; stroke: #b7791f; }
+      .label { fill: #10221c; font: 800 18px Arial, sans-serif; }
+      .text { fill: #5d6f67; font: 400 14px Arial, sans-serif; }
+      .small { fill: #16805f; font: 800 12px Arial, sans-serif; letter-spacing: .08em; }
+      .line { fill: none; stroke: #6b7c74; stroke-width: 3; }
+      .green { fill: none; stroke: #16805f; stroke-width: 4; }
+      .chip { fill: #ffffff; stroke: #cfe0d6; stroke-width: 1.5; rx: 12; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#6b7c74" />
+    </marker>
+    <marker id="greenArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#16805f" />
+    </marker>
+  </defs>
+  <rect class="bg" width="1280" height="520" rx="28" />
+  <text x="54" y="68" class="title">Hardware AI pipeline for freshness-aware food rescue</text>
+  <text x="54" y="98" class="sub">Sensor readings become explainable route and dispatch decisions.</text>
+
+  <rect x="54" y="155" width="220" height="205" class="node hardware" />
+  <text x="82" y="192" class="small">HARDWARE</text>
+  <text x="82" y="224" class="label">MQ + DHT sensors</text>
+  <text x="82" y="255" class="text">Gas spoilage signal</text>
+  <text x="82" y="278" class="text">Temperature and humidity</text>
+  <text x="82" y="301" class="text">MCU telemetry bridge</text>
+  <rect x="82" y="324" width="80" height="24" class="chip" />
+  <text x="100" y="341" class="text">Live</text>
+
+  <rect x="335" y="155" width="220" height="205" class="node data" />
+  <text x="363" y="192" class="small">INGESTION</text>
+  <text x="363" y="224" class="label">Sheets or API</text>
+  <text x="363" y="255" class="text">Google Sheets queue</text>
+  <text x="363" y="278" class="text">POST /api/iot/telemetry</text>
+  <text x="363" y="301" class="text">Duplicate and unsafe audits</text>
+
+  <rect x="616" y="155" width="250" height="205" class="node engine" />
+  <text x="644" y="192" class="small">AI DECISION ENGINE</text>
+  <text x="644" y="224" class="label">Freshness scoring</text>
+  <text x="644" y="255" class="text">Q10 time-temperature model</text>
+  <text x="644" y="278" class="text">Gas and humidity stress</text>
+  <text x="644" y="301" class="text">Effective delivery deadline</text>
+  <text x="644" y="324" class="text">Explainable recommendation</text>
+
+  <rect x="927" y="155" width="298" height="205" class="node action" />
+  <text x="955" y="192" class="small">OPERATIONS</text>
+  <text x="955" y="224" class="label">Route-aware dispatch</text>
+  <text x="955" y="255" class="text">Demand-center matching</text>
+  <text x="955" y="278" class="text">OSRM route feasibility</text>
+  <text x="955" y="301" class="text">Risk labels before claiming</text>
+  <text x="955" y="324" class="text">Prioritized food rescue queue</text>
+
+  <path class="green" d="M274 257 H335" marker-end="url(#greenArrow)" />
+  <path class="line" d="M555 257 H616" marker-end="url(#arrow)" />
+  <path class="line" d="M866 257 H927" marker-end="url(#arrow)" />
+
+  <rect x="170" y="400" width="945" height="52" fill="#ffffff" stroke="#d9e5dd" stroke-width="2" rx="18" />
+  <text x="205" y="432" class="sub">Core claim: hardware telemetry changes the route deadline, and the app ranks the safest, highest-impact dispatch decision.</text>
+</svg>
